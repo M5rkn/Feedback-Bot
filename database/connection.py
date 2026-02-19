@@ -3,20 +3,40 @@ from typing import Optional
 from config.settings import settings
 from database.models import FeedbackModel
 from datetime import datetime
+import asyncio
 
 
 class Database:
     """Класс для работы с базой данных"""
-    
+
     def __init__(self):
         self.client: Optional[AsyncIOMotorClient] = None
         self.db = None
-    
+
     async def connect(self):
         """Подключение к MongoDB"""
-        self.client = AsyncIOMotorClient(settings.MONGODB_URI)
-        self.db = self.client[settings.DB_NAME]
-        print(f"✅ Подключено к MongoDB: {settings.DB_NAME}")
+        try:
+            # Добавляем параметры для Railway MongoDB
+            uri = settings.mongodb_connection_string
+            if "ssl=" not in uri and "tls=" not in uri:
+                if "?" in uri:
+                    uri += "&ssl=true&tls=true"
+                else:
+                    uri += "?ssl=true&tls=true"
+
+            self.client = AsyncIOMotorClient(
+                uri,
+                serverSelectionTimeoutMS=10000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000,
+            )
+            # Принудительная проверка подключения
+            await self.client.admin.command('ping')
+            self.db = self.client[settings.DB_NAME]
+            print(f"✅ Подключено к MongoDB: {settings.DB_NAME}")
+        except Exception as e:
+            print(f"❌ Ошибка подключения к MongoDB: {e}")
+            raise
     
     async def disconnect(self):
         """Отключение от MongoDB"""
