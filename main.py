@@ -11,37 +11,35 @@ from handlers import user, admin
 
 async def main():
     """Запуск бота"""
-
-    # Настройка логирования
+    
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         stream=sys.stdout
     )
-
-    # Подключение к базе данных
+    
+    # Подключение к MongoDB
     try:
         await db.connect()
     except Exception as e:
-        logging.error(f"Не удалось подключиться к базе данных: {e}")
+        logging.error(f"❌ Ошибка подключения к MongoDB: {e}")
         sys.exit(1)
-
+    
     # Инициализация бота
     bot = Bot(
         token=settings.BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
-
-    # Инициализация диспетчера
+    
+    # Диспетчер
     dp = Dispatcher()
-
-    # Регистрация роутеров
+    
+    # Регистрируем роутеры
     dp.include_router(user.router)
     dp.include_router(admin.router)
-
-    # Удаление вебхука и запуск polling
-    await bot.delete_webhook(drop_pending_updates=True)
     
+    # Запуск
+    await bot.delete_webhook(drop_pending_updates=True)
     logging.info("🚀 Бот запущен...")
     
     try:
