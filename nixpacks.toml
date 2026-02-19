@@ -2,10 +2,7 @@
 nixPkgs = ["python310"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
-
-[phases.build]
-cmds = ["echo 'Build phase'"]
+cmds = ["python -m pip install -r requirements.txt"]
 
 [start]
 cmd = "python main.py"
