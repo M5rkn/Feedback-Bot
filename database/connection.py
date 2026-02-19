@@ -14,14 +14,10 @@ class Database:
     
     async def connect(self):
         """Подключение к MongoDB"""
-        uri = settings.MONGO_URL
+        uri = settings.mongodb_connection_string
         
-        # Добавляем SSL параметры для Railway
-        if "ssl=" not in uri and "tls=" not in uri:
-            if "?" in uri:
-                uri += "&ssl=true&tls=true"
-            else:
-                uri += "?ssl=true&tls=true"
+        # Railway сам управляет SSL параметрами в своей переменной
+        # Не добавляем ничего дополнительно
         
         self.client = AsyncIOMotorClient(
             uri,
