@@ -48,19 +48,28 @@ class Database:
         """Получение всех отзывов"""
         collection = self.db.feedback
         cursor = collection.find().sort("created_at", -1).limit(limit)
-        return await cursor.to_list(length=limit)
+        results = await cursor.to_list(length=limit)
+        # Конвертируем ObjectId в строку
+        for doc in results:
+            doc["_id"] = str(doc["_id"])
+        return results
     
     async def get_pending_feedback(self):
         """Получение отзывов на модерации"""
         collection = self.db.feedback
         cursor = collection.find({"is_moderated": False}).sort("created_at", -1)
-        return await cursor.to_list(length=100)
+        results = await cursor.to_list(length=100)
+        # Конвертируем ObjectId в строку для каждого документа
+        for doc in results:
+            doc["_id"] = str(doc["_id"])
+        return results
     
     async def approve_feedback(self, feedback_id: str, admin_comment: str = None):
         """Одобрение отзыва"""
+        from bson import ObjectId
         collection = self.db.feedback
         await collection.update_one(
-            {"_id": feedback_id},
+            {"_id": ObjectId(feedback_id)},
             {"$set": {
                 "is_moderated": True,
                 "is_approved": True,
@@ -71,9 +80,10 @@ class Database:
     
     async def reject_feedback(self, feedback_id: str, admin_comment: str = None):
         """Отклонение отзыва"""
+        from bson import ObjectId
         collection = self.db.feedback
         await collection.update_one(
-            {"_id": feedback_id},
+            {"_id": ObjectId(feedback_id)},
             {"$set": {
                 "is_moderated": True,
                 "is_approved": False,
@@ -103,7 +113,11 @@ class Database:
         """Получение отзывов пользователя"""
         collection = self.db.feedback
         cursor = collection.find({"user_id": user_id}).sort("created_at", -1)
-        return await cursor.to_list(length=100)
+        results = await cursor.to_list(length=100)
+        # Конвертируем ObjectId в строку
+        for doc in results:
+            doc["_id"] = str(doc["_id"])
+        return results
 
 
 db = Database()
